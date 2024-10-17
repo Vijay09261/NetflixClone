@@ -140,7 +140,8 @@ resource "aws_instance" "ansible_instance" {
   user_data = <<-EOF
               #!/bin/bash
               sudo apt update -y
-              sudo apt install ansible-core
+              sudo apt install ansible
+
 
               EOF
 
