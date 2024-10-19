@@ -128,7 +128,7 @@ resource "aws_security_group" "eks_control_plane_sg" {
 # ec2 for ansible and host#############################
 
 resource "aws_instance" "ansible_instance" {
-  ami           = "ami-08eb150f611ca277f"  # Replace with your desired AMI ID
+  ami           = "ami-02db68a01488594c5"  # Replace with your desired AMI ID
   instance_type = "t3.large"
   key_name      = "eu_north"       # Change instance type as needed
 
@@ -139,18 +139,17 @@ resource "aws_instance" "ansible_instance" {
   # Install Ansible via user_data script on the first instance
   user_data = <<-EOF
               #!/bin/bash
-              sudo apt update -y
-              sudo apt install ansible
-
-
+              sudo dnf update -y
+              sudo dnf install -y ansible
               EOF
+
 
   # Security group association
   vpc_security_group_ids = [aws_security_group.ansible_sg.id]
 }
 
 resource "aws_instance" "host_instance" {
-  ami           = "ami-08eb150f611ca277f"  # Replace with your desired AMI ID
+  ami           = "ami-02db68a01488594c5"  # Replace with your desired AMI ID
   instance_type = "t3.large"    
   key_name      = "eu_north"   # Change instance type as needed
 
@@ -161,8 +160,9 @@ resource "aws_instance" "host_instance" {
   # No Ansible installation on the second instance
   user_data = <<-EOF
               #!/bin/bash
-              sudo apt update -y
+              sudo dnf update -y
               EOF
+
 
   # Security group association
   vpc_security_group_ids = [aws_security_group.host_sg.id]
