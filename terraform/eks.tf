@@ -125,29 +125,7 @@ resource "aws_security_group" "eks_control_plane_sg" {
   }
 }
 
-# ec2 for ansible and host#############################
-
-resource "aws_instance" "ansible_instance" {
-  ami           = "ami-02db68a01488594c5"  # Replace with your desired AMI ID
-  instance_type = "t3.large"
-  key_name      = "eu_north"       # Change instance type as needed
-
-  tags = {
-    Name = "AnsibleInstance"
-  }
-
-  # Install Ansible via user_data script on the first instance
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo dnf update -y
-              sudo dnf install -y ansible
-              EOF
-
-
-  # Security group association
-  vpc_security_group_ids = [aws_security_group.ansible_sg.id]
-}
-
+# EC2 instance for host
 resource "aws_instance" "host_instance" {
   ami           = "ami-02db68a01488594c5"  # Replace with your desired AMI ID
   instance_type = "t3.large"    
@@ -160,34 +138,14 @@ resource "aws_instance" "host_instance" {
   # No Ansible installation on the second instance
   user_data = <<-EOF
               #!/bin/bash
-              sudo dnf update -y
+              sudo yum update -y
               EOF
-
 
   # Security group association
   vpc_security_group_ids = [aws_security_group.host_sg.id]
 }
 
-resource "aws_security_group" "ansible_sg" {
-  name        = "ansible_instance_sg"
-  description = "Allow SSH access on the Ansible instance"
-
-  # Allow SSH access from anywhere for the Ansible instance
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
+# Security Group for Host instance
 resource "aws_security_group" "host_sg" {
   name        = "host_instance_sg"
   description = "Allow SSH, HTTP, and SonarQube access on the Host instance"
