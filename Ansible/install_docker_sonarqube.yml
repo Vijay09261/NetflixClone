@@ -1,90 +1,103 @@
 ---
-  - hosts: all
-    become: yes
-    tasks:
-  
-      - name: Install Docker
-        yum:
-          name: docker
-          state: present
-  
-      - name: Start and enable Docker service
-        systemd:
-          name: docker
-          enabled: yes
-          state: started
-  
-      - name: Update Yum repositories
-        yum:
-          name: "*"
-          state: latest
-  
-      - name: Install unzip and wget
-        yum:
-          name:
-            - unzip
-            - wget
-          state: present
-  
-      - name: Download SonarQube
-        get_url:
-          url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.1.69595.zip"
-          dest: /tmp/sonarqube.zip
-        register: download_result
-  
-      - name: Check if SonarQube download was successful
-        stat:
-          path: /tmp/sonarqube.zip
-        register: sonarqube_zip
-  
-      - name: Fail if SonarQube file is empty or not downloaded
-        fail:
-          msg: "SonarQube download failed, or the file is empty!"
-        when: sonarqube_zip.stat.size == 0
-  
-      - name: Extract SonarQube
-        unarchive:
-          src: /tmp/sonarqube.zip
-          dest: /opt/
-          remote_src: yes
-        when: sonarqube_zip.stat.size > 0
-  
-      - name: Create SonarQube user
-        user:
-          name: sonarqube
-          system: yes
-  
-      - name: Change ownership of SonarQube directory
-        file:
-          path: /opt/sonarqube-9.9.1.69595
-          owner: sonarqube
-          group: sonarqube
-          state: directory
-          recurse: yes
-  
-      - name: Set up SonarQube service
-        copy:
-          dest: /etc/systemd/system/sonarqube.service
-          content: |
-            [Unit]
-            Description=SonarQube service
-            After=syslog.target network.target
-  
-            [Service]
-            Type=forking
-            ExecStart=/opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh start
-            ExecStop=/opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh stop
-            User=sonarqube
-            Group=sonarqube
-            Restart=always
-  
-            [Install]
-            WantedBy=multi-user.target
-  
-      - name: Reload systemd and start SonarQube service
-        systemd:
-          daemon_reload: yes
-          name: sonarqube
-          enabled: yes
-          state: started
-  
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Update Yum repositories
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Install required packages
+      yum:
+        name:
+          - unzip
+          - wget
+          - java-11-openjdk
+        state: present
+
+    - name: Download SonarQube
+      get_url:
+        url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.9.1.69595.zip"
+        dest: /tmp/sonarqube.zip
+      register: download_result
+
+    - name: Check if SonarQube download was successful
+      stat:
+        path: /tmp/sonarqube.zip
+      register: sonarqube_zip
+
+    - name: Fail if SonarQube file is empty or not downloaded
+      fail:
+        msg: "SonarQube download failed, or the file is empty!"
+      when: sonarqube_zip.stat.size == 0
+
+    - name: Extract SonarQube
+      unarchive:
+        src: /tmp/sonarqube.zip
+        dest: /opt/
+        remote_src: yes
+      when: sonarqube_zip.stat.size > 0
+
+    - name: Create SonarQube user
+      user:
+        name: sonarqube
+        system: yes
+
+    - name: Change ownership of SonarQube directory
+      file:
+        path: /opt/sonarqube-9.9.1.69595
+        owner: sonarqube
+        group: sonarqube
+        state: directory
+        recurse: yes
+
+    - name: Ensure sonar.sh is executable
+      file:
+        path: /opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh
+        mode: '0755'
+        state: file
+
+    - name: Configure SonarQube memory settings
+      lineinfile:
+        path: /opt/sonarqube-9.9.1.69595/conf/sonar.properties
+        regexp: '^sonar.search.javaOpts='
+        line: 'sonar.search.javaOpts=-Xms512m -Xmx2g'
+        create: yes
+
+    - name: Set up SonarQube service
+      copy:
+        dest: /etc/systemd/system/sonarqube.service
+        content: |
+          [Unit]
+          Description=SonarQube service
+          After=syslog.target network.target
+
+          [Service]
+          Type=forking
+          ExecStart=/opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh start
+          ExecStop=/opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh stop
+          User=sonarqube
+          Group=sonarqube
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd and start SonarQube service
+      systemd:
+        daemon_reload: yes
+        name: sonarqube
+        enabled: yes
+        state: started
