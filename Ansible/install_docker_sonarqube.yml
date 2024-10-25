@@ -19,13 +19,24 @@
         name: "*"
         state: latest
 
-    - name: Install required packages
-      yum:
-        name:
-          - unzip
-          - wget
-          - java-11-openjdk
-        state: present
+    - name: Install required packages (unzip, wget, Amazon Corretto)
+      block:
+        - name: Add Amazon Corretto yum repository
+          amazon-linux-extras:
+            name: corretto8
+            state: enabled
+
+        - name: Install unzip, wget, and java-11-amazon-corretto
+          yum:
+            name:
+              - unzip
+              - wget
+              - java-11-amazon-corretto
+            state: present
+      rescue:
+        - name: Fail if package installation fails
+          fail:
+            msg: "Failed to install necessary packages. Please check repository settings."
 
     - name: Download SonarQube
       get_url:
