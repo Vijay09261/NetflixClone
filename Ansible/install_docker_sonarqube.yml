@@ -19,24 +19,12 @@
         name: "*"
         state: latest
 
-    - name: Install required packages (unzip, wget, Amazon Corretto)
-      block:
-        - name: Add Amazon Corretto yum repository
-          amazon-linux-extras:
-            name: corretto8
-            state: enabled
-
-        - name: Install unzip, wget, and java-11-amazon-corretto
-          yum:
-            name:
-              - unzip
-              - wget
-              - java-11-amazon-corretto
-            state: present
-      rescue:
-        - name: Fail if package installation fails
-          fail:
-            msg: "Failed to install necessary packages. Please check repository settings."
+    - name: Install unzip and wget
+      yum:
+        name:
+          - unzip
+          - wget
+        state: present
 
     - name: Download SonarQube
       get_url:
@@ -73,19 +61,6 @@
         group: sonarqube
         state: directory
         recurse: yes
-
-    - name: Ensure sonar.sh is executable
-      file:
-        path: /opt/sonarqube-9.9.1.69595/bin/linux-x86-64/sonar.sh
-        mode: '0755'
-        state: file
-
-    - name: Configure SonarQube memory settings
-      lineinfile:
-        path: /opt/sonarqube-9.9.1.69595/conf/sonar.properties
-        regexp: '^sonar.search.javaOpts='
-        line: 'sonar.search.javaOpts=-Xms512m -Xmx2g'
-        create: yes
 
     - name: Set up SonarQube service
       copy:
