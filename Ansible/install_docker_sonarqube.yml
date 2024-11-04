@@ -1,28 +1,40 @@
 ---
-  - hosts: all
-    become: yes
-    tasks:
-  
-      - name: Install Docker
-        yum:
-          name: docker
-          state: present
-  
-      - name: Start and enable Docker service
-        systemd:
-          name: docker
-          enabled: yes
-          state: started
-  
-      - name: Update Yum repositories
-        yum:
-          name: "*"
-          state: latest
-  
-      - name: Install unzip and wget
-        yum:
-          name:
-            - unzip
-            - wget
-          state: present
-  
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Update Yum repositories
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Install unzip and wget
+      yum:
+        name:
+          - unzip
+          - wget
+        state: present
+
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+    - name: Clone GitHub Repository
+      git:
+        repo: "{{ GITHUB_REPO }}"
+        dest: /home/ec2-user/NetflixClone
+        version: main
+        force: yes
+      become_user: ec2-user
