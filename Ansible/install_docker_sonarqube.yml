@@ -37,7 +37,7 @@
     - name: Clone GitHub Repository
       git:
         repo: "{{ GITHUB_REPO }}"
-        dest: /home/ec2-user/NetflixClone
+        dest: /home/ec2-user/DevSecOps-Project
         version: main
         force: yes
       become_user: ec2-user
