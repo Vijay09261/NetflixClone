@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    GITHUB_REPO: 'https://github.com/Vijay09261/NetflixClone.git'
+    GITHUB_REPO: 'https://github.com/N4si/DevSecOps-Project.git'
 
   tasks:
     - name: Install Docker
