@@ -2,6 +2,9 @@
 - hosts: all
   become: yes
 
+  vars:
+    GITHUB_REPO: 'https://github.com/Vijay09261/NetflixClone.git'
+
   tasks:
     - name: Install Docker
       yum:
