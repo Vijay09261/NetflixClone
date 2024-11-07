@@ -41,3 +41,8 @@
         version: main
         force: yes
       become_user: ec2-user
+
+      - name: Install Trivy
+      command: rpm -ivh https://github.com/aquasecurity/trivy/releases/download/v0.18.3/trivy_0.18.3_Linux-64bit.rpm
+      args:
+        creates: /usr/local/bin/trivy  # Prevents reinstallation if Trivy is already installed
