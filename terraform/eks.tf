@@ -119,6 +119,23 @@ resource "aws_security_group" "eks_control_plane_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # Allow access to Netflix app on port 30007
+  ingress {
+    description      = "Allow access to Netflix app NodePort service"
+    from_port        = 30007
+    to_port          = 30007
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  # Egress rule
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
 
   tags = {
     Name = "eks_control_plane_sg"
